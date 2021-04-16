@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Tika.RestClient.Features.Acls.Models;
 
@@ -12,16 +13,18 @@ namespace Tika.RestClient.Features.Acls
     {
         private const string ACLS_ROUTE = "/access-control-lists";
         private readonly HttpClient _httpClient;
+        private readonly ClientOptions _clientOptions;
 
-        public AclsClient(HttpClient httpClient)
+        public AclsClient(HttpClient httpClient, ClientOptions options)
         {
             _httpClient = httpClient;
+            _clientOptions = options;
         }
         
-        public async Task<IEnumerable<Acl>> GetAllAsync()
+        public async Task<IEnumerable<Acl>> GetAllAsync(string clusterId = null)
         {
             var httpResponseMessage = await _httpClient.GetAsync(
-                new Uri(ACLS_ROUTE, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, ACLS_ROUTE, clusterId), UriKind.Absolute)
             );
             
             var acls = await Utilities.Parse<IEnumerable<Acl>>(httpResponseMessage);
@@ -29,7 +32,7 @@ namespace Tika.RestClient.Features.Acls
             return acls;
         }
 
-        public async Task CreateAsync(AclCreateDelete aclCreateDelete)
+        public async Task CreateAsync(AclCreateDelete aclCreateDelete, string clusterId = null)
         {
             var payload = JsonConvert.SerializeObject(new
             {
@@ -47,12 +50,12 @@ namespace Tika.RestClient.Features.Acls
             );
 
             await _httpClient.PostAsync(
-                new Uri(ACLS_ROUTE, UriKind.Relative),
+                new Uri(Utilities.MakeUrl(_clientOptions, ACLS_ROUTE, clusterId), UriKind.Absolute),
                 content
             );
         }
 
-        public async Task DeleteAsync(AclCreateDelete aclDelete)
+        public async Task DeleteAsync(AclCreateDelete aclDelete, string clusterId = null)
         {
             var payload = JsonConvert.SerializeObject(new
             {
@@ -69,9 +72,8 @@ namespace Tika.RestClient.Features.Acls
                 "application/json"
             );
 
-            
             var httpResponseMessage = await _httpClient.PostAsync(
-                new Uri(ACLS_ROUTE + "/delete", UriKind.Relative), 
+                new Uri(Utilities.MakeUrl(_clientOptions, ACLS_ROUTE + "/delete", clusterId), UriKind.Absolute), 
                 content
             );
 

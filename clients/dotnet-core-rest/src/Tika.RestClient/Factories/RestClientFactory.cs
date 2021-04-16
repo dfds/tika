@@ -6,19 +6,28 @@ namespace Tika.RestClient.Factories
 {
     public static class RestClientFactory
     {
-        public static IRestClient Create(HttpClient httpClient)
+        public static IRestClient Create(HttpClient httpClient, ClientOptions options, string cluster = "")
         {
-            return new Client(httpClient);
+            return new Client(httpClient, options);
         }
 
-        public static IRestClient CreateFromConfiguration(HttpClient httpClient, IOptions<ClientOptions> options)
+        public static IRestClient CreateFromConfiguration(HttpClient httpClient, IOptions<ClientOptions> options, string cluster = "")
         {
-            if (options.Value?.TIKA_API_ENDPOINT == null)
+            if (options.Value?.TIKA_API_ENDPOINT == null && options.Value?.TIKA_ENABLE_MULTI_CLUSTER != true)
             {
                 throw new TikaRestClientInvalidConfigurationException("TIKA_API_ENDPOINT");
             }
-            httpClient.BaseAddress = new Uri(options.Value?.TIKA_API_ENDPOINT);
-            return new Client(httpClient);
+
+            if (options.Value?.TIKA_ENABLE_MULTI_CLUSTER == false)
+            {
+                httpClient.BaseAddress = new Uri(options.Value?.TIKA_API_ENDPOINT);
+            }
+            else
+            {
+                httpClient.BaseAddress = new Uri($"{options.Value?.TIKA_MULTI_CLUSTER_HOSTNAME_PREFIX}-{cluster}:3000");
+            }
+            
+            return new Client(httpClient, options.Value);
         }
     }
 

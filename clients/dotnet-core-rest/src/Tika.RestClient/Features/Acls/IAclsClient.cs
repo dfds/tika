@@ -6,8 +6,8 @@ namespace Tika.RestClient.Features.Acls
 {
     public interface IAclsClient
     {
-        Task<IEnumerable<Acl>> GetAllAsync();
-        Task CreateAsync(AclCreateDelete aclCreateDelete);
-        Task DeleteAsync(AclCreateDelete aclDelete);
+        Task<IEnumerable<Acl>> GetAllAsync(string clusterId = null);
+        Task CreateAsync(AclCreateDelete aclCreateDelete, string clusterId = null);
+        Task DeleteAsync(AclCreateDelete aclDelete, string clusterId = null);
     }
 }

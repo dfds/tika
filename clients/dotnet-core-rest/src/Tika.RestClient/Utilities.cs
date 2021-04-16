@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -14,5 +15,24 @@ namespace Tika.RestClient
             var data = JsonConvert.DeserializeObject<T>(content);
             return data;
         }
+
+        public static string MakeUrl(ClientOptions clientOptions, string path, string cluster = null)
+        {
+            if (clientOptions.TIKA_ENABLE_MULTI_CLUSTER)
+            {
+                return $"{clientOptions.TIKA_MULTI_CLUSTER_HOSTNAME_PREFIX}-{cluster}:3000{path}";
+            }
+            else
+            {
+                return $"{clientOptions.TIKA_API_ENDPOINT}{path}";
+            }
+        }
+
+    }
+
+    public class UrlResult
+    {
+        public string Url { get; set; }
+        public UriKind UriKind { get; set; }
     }
 }
