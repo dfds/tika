@@ -20,7 +20,7 @@ namespace Tika.RestClient
         {
             if (clientOptions.TIKA_ENABLE_MULTI_CLUSTER)
             {
-                return $"{clientOptions.TIKA_MULTI_CLUSTER_HOSTNAME_PREFIX}-{cluster}:3000{path}";
+                return $"{clientOptions.TIKA_MULTI_CLUSTER_HOSTNAME_PREFIX}{cluster}:3000{path}";
             }
             else
             {
