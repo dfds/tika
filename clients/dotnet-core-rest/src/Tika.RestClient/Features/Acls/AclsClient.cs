@@ -23,7 +23,6 @@ namespace Tika.RestClient.Features.Acls
         
         public async Task<IEnumerable<Acl>> GetAllAsync(string clusterId = null)
         {
-            Console.WriteLine(Utilities.MakeUrl(_clientOptions, ACLS_ROUTE, clusterId).ToString());
             var httpResponseMessage = await _httpClient.GetAsync(
                 new Uri(Utilities.MakeUrl(_clientOptions, ACLS_ROUTE, clusterId), UriKind.Absolute)
             );

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,9 +28,10 @@ namespace Tika.RestClient.Features.ApiKeys
                 new Uri(Utilities.MakeUrl(_clientOptions, APIKEYS_ROUTE, clusterId), UriKind.Absolute)
             );
             
-            var serviceAccounts = await Utilities.Parse<IEnumerable<ApiKey>>(httpResponseMessage);
+            var apiKeys = await Utilities.Parse<IEnumerable<ApiKey>>(httpResponseMessage);
+            apiKeys = apiKeys.Where(key => key.Resource.ToLower().Equals(clusterId.ToLower()));
 
-            return serviceAccounts;
+            return apiKeys;
         }
 
         public async Task<ApiKey> CreateAsync(ApiKeyCreate apiKeyCreate, string clusterId = null)

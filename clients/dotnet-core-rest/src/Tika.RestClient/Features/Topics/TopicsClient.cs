@@ -24,7 +24,6 @@ namespace Tika.RestClient.Features.Topics
 
         public async Task<IEnumerable<string>> GetAllAsync(string clusterId = null)
         {
-            Console.WriteLine(Utilities.MakeUrl(_clientOptions, TOPICS_ROUTE, clusterId).ToString());
             var httpResponseMessage = await _httpClient.GetAsync(
                 new Uri(Utilities.MakeUrl(_clientOptions, TOPICS_ROUTE, clusterId), UriKind.Absolute)
             );
