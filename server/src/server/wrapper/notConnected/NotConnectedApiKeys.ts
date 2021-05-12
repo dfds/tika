@@ -21,7 +21,8 @@ export class NotConnectedApiKeys implements ApiKeys {
         let apiKey: ApiKey = {
             Key: key,
             Description: description,
-            Owner: serviceAccountId.toString()
+            Owner: serviceAccountId.toString(),
+            Resource: ""
         };
         this.apiKeys.push(apiKey);
 

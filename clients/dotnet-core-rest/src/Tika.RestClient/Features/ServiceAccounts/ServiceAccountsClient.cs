@@ -12,16 +12,19 @@ namespace Tika.RestClient.Features.ServiceAccounts
     {
         private const string SERVICE_ACCOUNTS_ROUTE = "/service-accounts";
         private readonly HttpClient _httpClient;
+        private readonly ClientOptions _clientOptions;
 
-        public ServiceAccountsClient(HttpClient httpClient)
+        public ServiceAccountsClient(HttpClient httpClient, ClientOptions clientOptions)
         {
             _httpClient = httpClient;
+            _clientOptions = clientOptions;
         }
         
-        public async Task<IEnumerable<ServiceAccount>> GetAllAsync()
+        public async Task<IEnumerable<ServiceAccount>> GetAllAsync(string clusterId = null)
         {
+            
             var httpResponseMessage = await _httpClient.GetAsync(
-                new Uri(SERVICE_ACCOUNTS_ROUTE, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, SERVICE_ACCOUNTS_ROUTE, clusterId), UriKind.Absolute)
             );
             
             var serviceAccounts = await Utilities.Parse<IEnumerable<ServiceAccount>>(httpResponseMessage);
@@ -29,7 +32,7 @@ namespace Tika.RestClient.Features.ServiceAccounts
             return serviceAccounts;
         }
 
-        public async Task<ServiceAccount> CreateAsync(ServiceAccountCreateCommand serviceAccountCreateCommand)
+        public async Task<ServiceAccount> CreateAsync(ServiceAccountCreateCommand serviceAccountCreateCommand, string clusterId = null)
         {
             var payload = JsonConvert.SerializeObject(serviceAccountCreateCommand);
 
@@ -40,7 +43,7 @@ namespace Tika.RestClient.Features.ServiceAccounts
             );
 
             var response = await _httpClient.PostAsync(
-                new Uri(SERVICE_ACCOUNTS_ROUTE, UriKind.Relative),
+                new Uri(Utilities.MakeUrl(_clientOptions, SERVICE_ACCOUNTS_ROUTE, clusterId), UriKind.Absolute),
                 content
             );
 
@@ -49,10 +52,11 @@ namespace Tika.RestClient.Features.ServiceAccounts
             return serviceAccount;
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(string id, string clusterId = null)
         {
+            
             var httpResponseMessage = await _httpClient.DeleteAsync(
-                new Uri(SERVICE_ACCOUNTS_ROUTE + "/" + id, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, SERVICE_ACCOUNTS_ROUTE + "/" + id, clusterId), UriKind.Absolute)
             );
 
             httpResponseMessage.EnsureSuccessStatusCode();

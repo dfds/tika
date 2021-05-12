@@ -14,16 +14,18 @@ namespace Tika.RestClient.Features.Topics
     {
         private const string TOPICS_ROUTE = "/topics";
         private readonly HttpClient _httpClient;
+        private readonly ClientOptions _clientOptions;
 
-        public TopicsClient(HttpClient httpClient)
+        public TopicsClient(HttpClient httpClient, ClientOptions clientOptions)
         {
             _httpClient = httpClient;
+            _clientOptions = clientOptions;
         }
 
-        public async Task<IEnumerable<string>> GetAllAsync()
+        public async Task<IEnumerable<string>> GetAllAsync(string clusterId = null)
         {
             var httpResponseMessage = await _httpClient.GetAsync(
-                new Uri(TOPICS_ROUTE, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, TOPICS_ROUTE, clusterId), UriKind.Absolute)
             );
             
             var topics = await Utilities.Parse<IEnumerable<string>>(httpResponseMessage);
@@ -32,7 +34,7 @@ namespace Tika.RestClient.Features.Topics
         }
 
         /// <exception cref="Tika.RestClient.Features.Topics.Exceptions.TopicAlreadyExistsException">Thrown when topic with given name already exists</exception>
-        public async Task CreateAsync(TopicCreate topicCreate)
+        public async Task CreateAsync(TopicCreate topicCreate, string clusterId = null)
         {
             var payload = JsonConvert.SerializeObject(topicCreate);
 
@@ -43,7 +45,7 @@ namespace Tika.RestClient.Features.Topics
             );
 
             var res = await _httpClient.PostAsync(
-                new Uri(TOPICS_ROUTE, UriKind.Relative),
+                new Uri(Utilities.MakeUrl(_clientOptions, TOPICS_ROUTE, clusterId), UriKind.Absolute),
                 content
             );
 
@@ -58,19 +60,20 @@ namespace Tika.RestClient.Features.Topics
             }
         }
 
-        public async Task DeleteAsync(string topicName)
+        public async Task DeleteAsync(string topicName, string clusterId = null)
         {
+            
             var httpResponseMessage = await _httpClient.DeleteAsync(
-                new Uri(TOPICS_ROUTE + "/" + topicName, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, TOPICS_ROUTE + "/" + topicName, clusterId), UriKind.Absolute)
             );
 
             httpResponseMessage.EnsureSuccessStatusCode();
         }
 
-        public async Task<TopicDescription> DescribeAsync(string topicName)
+        public async Task<TopicDescription> DescribeAsync(string topicName, string clusterId = null)
         {
             var httpResponseMessage = await _httpClient.GetAsync(
-                new Uri(TOPICS_ROUTE + "/" + topicName, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, TOPICS_ROUTE + "/" + topicName, clusterId), UriKind.Absolute)
             );
             
             var topicDescription = await Utilities.Parse<TopicDescription>(httpResponseMessage);

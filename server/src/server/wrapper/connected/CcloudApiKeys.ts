@@ -1,14 +1,18 @@
 import { parse, parseSideColumns } from "./../parser";
 import {executeCli } from "./executeCli";
+import { GetConfig } from "../../config";
 
 export class CcloudApiKeys implements ApiKeys {
     ccloud: CCloudCliWrapper;
   
     async createApiKey(serviceAccountId: number, description: string): Promise<ApiKeySet> {
+      let config = GetConfig();
+
       let cliOutput = await executeCli([
         "api-key",
         "create",
-        "--resource", process.env.TIKA_CCLOUD_CLUSTER_ID,
+        "--resource", config.clusterId,
+        "--environment", config.environmentId,
         "--service-account", serviceAccountId + "",
         "--description", description]
       );
@@ -27,7 +31,7 @@ export class CcloudApiKeys implements ApiKeys {
       let cliObjects = parse(cliOutput);
   
       let apiKeys = cliObjects.map(function (obj) {
-        return { Key: obj.Key, Description: obj.Description, Owner: obj.Owner } as ApiKey
+        return { Key: obj.Key, Description: obj.Description, Owner: obj.Owner, Resource: obj.ResourceID } as ApiKey
       });
     
       return apiKeys;

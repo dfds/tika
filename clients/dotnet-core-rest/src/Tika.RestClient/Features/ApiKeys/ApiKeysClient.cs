@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,24 +13,28 @@ namespace Tika.RestClient.Features.ApiKeys
     {
         private const string APIKEYS_ROUTE = "/api-keys";
         private readonly HttpClient _httpClient;
+        private readonly ClientOptions _clientOptions;
 
-        public ApiKeysClient(HttpClient httpClient)
+        public ApiKeysClient(HttpClient httpClient, ClientOptions clientOptions)
         {
             _httpClient = httpClient;
+            _clientOptions = clientOptions;
         }
         
-        public async Task<IEnumerable<ApiKey>> GetAllAsync()
+        public async Task<IEnumerable<ApiKey>> GetAllAsync(string clusterId = null)
         {
+            
             var httpResponseMessage = await _httpClient.GetAsync(
-                new Uri(APIKEYS_ROUTE, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, APIKEYS_ROUTE, clusterId), UriKind.Absolute)
             );
             
-            var serviceAccounts = await Utilities.Parse<IEnumerable<ApiKey>>(httpResponseMessage);
+            var apiKeys = await Utilities.Parse<IEnumerable<ApiKey>>(httpResponseMessage);
+            apiKeys = apiKeys.Where(key => key.Resource.ToLower().Equals(clusterId.ToLower()));
 
-            return serviceAccounts;
+            return apiKeys;
         }
 
-        public async Task<ApiKey> CreateAsync(ApiKeyCreate apiKeyCreate)
+        public async Task<ApiKey> CreateAsync(ApiKeyCreate apiKeyCreate, string clusterId = null)
         {
             var payload = JsonConvert.SerializeObject(new
             {
@@ -44,7 +49,7 @@ namespace Tika.RestClient.Features.ApiKeys
             );
 
             var response = await _httpClient.PostAsync(
-                new Uri(APIKEYS_ROUTE, UriKind.Relative),
+                new Uri(Utilities.MakeUrl(_clientOptions, APIKEYS_ROUTE, clusterId), UriKind.Absolute),
                 content
             );
 
@@ -53,10 +58,11 @@ namespace Tika.RestClient.Features.ApiKeys
             return apiKey;
         }
 
-        public async Task DeleteAsync(string key)
+        public async Task DeleteAsync(string key, string clusterId = null)
         {
+            
             var httpResponseMessage = await _httpClient.DeleteAsync(
-                new Uri(APIKEYS_ROUTE + "/" + key, UriKind.Relative)
+                new Uri(Utilities.MakeUrl(_clientOptions, APIKEYS_ROUTE + "/" + key, clusterId), UriKind.Absolute)
             );
 
             httpResponseMessage.EnsureSuccessStatusCode();

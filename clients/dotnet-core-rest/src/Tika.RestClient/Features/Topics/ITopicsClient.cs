@@ -7,11 +7,11 @@ namespace Tika.RestClient.Features.Topics
 {
     public interface ITopicsClient
     {
-        Task<IEnumerable<string>> GetAllAsync();
-        Task<TopicDescription> DescribeAsync(string topicName);
+        Task<IEnumerable<string>> GetAllAsync(string clusterId = null);
+        Task<TopicDescription> DescribeAsync(string topicName, string clusterId = null);
 
-        Task CreateAsync(TopicCreate topicCreate);
-        Task DeleteAsync(string topicName);
+        Task CreateAsync(TopicCreate topicCreate, string clusterId = null);
+        Task DeleteAsync(string topicName, string clusterId = null);
         
     }
 }

@@ -1,10 +1,11 @@
 import { parse } from "./../parser";
 import { executeCli } from "./executeCli";
-
+import { GetConfig } from "../../config";
 
 export class CcloudAccessControlLists implements AccessControlLists {
     async getAccessControlLists(): Promise<AccessControlList[]> {
-        let result = await executeCli(["kafka", "acl", "list", "--cluster", process.env.TIKA_CCLOUD_CLUSTER_ID]);
+        let config = GetConfig();
+        let result = await executeCli(["kafka", "acl", "list", "--cluster", config.clusterId, "--environment", config.environmentId]);
         let resultObjects = parse(result) as AccessControlList[];
 
         resultObjects.forEach(elem => {
@@ -62,9 +63,11 @@ export class CcloudAccessControlLists implements AccessControlLists {
         topicPrefix: string,
         consumerGroupPrefix: string
     ): string[] {
+        let config = GetConfig();
         let command = [
             "kafka", "acl", createOrDelete,
-            "--cluster", process.env.TIKA_CCLOUD_CLUSTER_ID,
+            "--cluster", config.clusterId,
+            "--environment", config.environmentId,
             "--service-account", serviceAccountId + "",
             "--operation", operation
         ];
