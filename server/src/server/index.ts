@@ -9,16 +9,33 @@ import { RequestError } from "./api/middleware/requestErrorMiddleware";
 import { ResponseLogger } from "./api/middleware/responseLoggerMiddleware";
 const express = require("express");
 const setCorrelationId = require('express-mw-correlation-id');
+const promBundle = require("express-prom-bundle");
+import * as promClient from 'prom-client';
+import { GetConfig } from "./config";
+
+const promMetrics = promBundle({includePath: true});
+
+const confluentUp = new promClient.Gauge(
+  {
+    name: 'tika_confluent_up',
+    help: 'tika_confluent_up_help',
+    labelNames: ['kafkaCluster']
+  }
+);
 
 const app = express();
 app.use(setCorrelationId());
+app.use(promMetrics);
 app.use(express.json());
 app.use(RequestLogger);
 app.use(ResponseLogger);
 
+
 var cc: CCloudCliWrapper;
 
 const apiImplementationToUse = process.env.TIKA_API_IMPLEMENTATION || "connected";
+const appConfig = GetConfig();
+
 
 console.info("Using api implementation:", apiImplementationToUse);
 switch (apiImplementationToUse.valueOf()) {
@@ -31,6 +48,19 @@ switch (apiImplementationToUse.valueOf()) {
     default:
         cc = new Ccloud();
 }
+
+// Healthcheck
+app.get("/healthz", async (_ : any, res : any) => {
+  try {
+      let topics = await cc.Kafka.Topics.getTopics();
+      confluentUp.set({kafkaCluster: appConfig.clusterId}, 1);
+      res.sendStatus(200);
+  } catch (error) {
+      confluentUp.set({kafkaCluster: appConfig.clusterId}, 0);
+      console.log("Health check error: ", error);
+      res.sendStatus(500);
+  }
+});
 
 const serviceAccountsInterface = new ServiceAccountsInterface();
 serviceAccountsInterface.configureApp(
