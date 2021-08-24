@@ -23,6 +23,7 @@ type ApiKey = {
 }
 
 type AccessControlList = {
+    UserId: string;
     ServiceAccountId: string;
     Permission: string;
     Operation: string;

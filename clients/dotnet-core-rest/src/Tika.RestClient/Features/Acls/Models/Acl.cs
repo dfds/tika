@@ -2,7 +2,8 @@ namespace Tika.RestClient.Features.Acls.Models
 {
     public class Acl
     {
-        public long ServiceAccountId { get; set; }
+        public long UserId { get; set; }
+        public string ServiceAccountId { get; set; }
         public string Permission { get; set; }
         public string Resource { get; set; }
         public string Operation { get; set; }

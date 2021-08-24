@@ -9,7 +9,7 @@ export class CcloudAccessControlLists implements AccessControlLists {
         let resultObjects = parse(result) as AccessControlList[];
 
         resultObjects.forEach(elem => {
-            elem.ServiceAccountId = elem.ServiceAccountId.split(':')[1];
+            elem.UserId = elem.UserId.split(':')[1];
         });
 
         return resultObjects;

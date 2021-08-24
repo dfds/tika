@@ -60,7 +60,7 @@ namespace Tika.RestClient.IntegrationTests.Features.Acls
                 .Where(acl => acl.Operation == _aclCreateDelete.Operation)
                 .Where(acl => acl.Name == _aclCreateDelete.TopicPrefix)
                 .Where(acl => acl.ConsumerGroupPrefix == _aclCreateDelete.ConsumerGroupPrefix)
-                .Single(acl => acl.ServiceAccountId == _aclCreateDelete.ServiceAccountId);
+                .Single(acl => acl.UserId == _aclCreateDelete.ServiceAccountId);
         }
     }
 }
