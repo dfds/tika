@@ -82,6 +82,7 @@ export class NotConnectedAccessControlLists implements AccessControlLists {
     if (topicPrefix !== undefined) { name = topicPrefix; }
     else if (consumerGroupPrefix !== undefined) { name = consumerGroupPrefix }
     let accessControlList: AccessControlList = {
+      UserId: serviceAccountId + "",
       ServiceAccountId: serviceAccountId + "",
       Permission: allow ? "ALLOW" : "DENY",
       Operation: operation,
