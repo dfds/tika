@@ -23,8 +23,8 @@
   },
   "homepage": "https://github.com/dfds/tika#readme",
   "dependencies": {
-    "@babel/core": "^7.7.5",
-    "@babel/preset-env": "^7.7.6",
+    "@babel/core": "^7.16.12",
+    "@babel/preset-env": "^7.16.11",
     "@types/express": "^4.17.2",
     "@typescript-eslint/eslint-plugin": "^2.11.0",
     "@typescript-eslint/parser": "^2.11.0",
