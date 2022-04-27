@@ -3,7 +3,7 @@ import { executeCli } from "./executeCli";
 import { TopicAlreadyExistsException } from "../model/error";
 import { GetConfig } from "../../config";
 import { Deserializer, ConcatOutput } from "../utils";
-import ListTopics from "../model/topics";
+import { ListTopics, DescribeTopic } from "../model/topics";
 
 
 export class CcloudTopics implements Topics {
@@ -28,9 +28,21 @@ export class CcloudTopics implements Topics {
 
     async describeTopic(name: string): Promise<Topic> {
         let config = GetConfig();
-        let consoleLines = await executeCli(["kafka", "topic", "describe", name, "--cluster", config.clusterId, "--environment", config.environmentId, "--output", "json"]);
+        let result = await executeCli(["kafka", "topic", "describe", name, "--cluster", config.clusterId, "--environment", config.environmentId, "--output", "json"]);
 
-        var topic = parseTopicDescription(consoleLines);
+        let combinedResult = ConcatOutput(result);
+        let deserializedResult : DescribeTopic;
+        try {
+            deserializedResult = Deserializer<DescribeTopic>(combinedResult);
+        } catch (error) {
+            return error;
+        }
+
+        let topic = {
+            Name: deserializedResult.topic_name,
+            PartitionCount: deserializedResult.config["num.partitions"], // might be an issue that partitionCount is present twice
+            Configurations: deserializedResult.config // might be an issue that partitionCount is present twice
+        };
 
         return topic;
     }

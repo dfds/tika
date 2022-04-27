@@ -2,8 +2,9 @@ export class ListTopic {
     name: string
 }
 
-type ListTopics = Array<ListTopic>;
+export type ListTopics = Array<ListTopic>;
 
-export default ListTopics;
-
-
+export class DescribeTopic {
+    topic_name: string
+    config: {[key: string]: any}
+}
