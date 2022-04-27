@@ -1,15 +1,30 @@
 import { parse, parseSideColumns } from "./../parser";
 import { executeCli } from "./executeCli";
 import { CliException, ServiceAccountAlreadyExistsException } from "./../model/error";
+import { Deserializer, ConcatOutput } from "../utils";
+import { ListServiceAccounts } from "../model/service-account";
 
 export class CcloudServiceAccount implements ServiceAccounts {
   ccloud: CCloudCliWrapper;
 
   async getServiceAccounts(): Promise<ServiceAccount[]> {
-    let result = await executeCli(["service-account", "list"]);
-    result = parse(result);
+    let result = await executeCli(["iam", "service-account", "list", "--output", "json"]);
+    let combinedResult = ConcatOutput(result);
+    let deserializedResult : ListServiceAccounts;
+    try {
+        deserializedResult = Deserializer<ListServiceAccounts>(combinedResult);
+    } catch (error) {
+        return error;
+    }
 
-    return (result as any) as ServiceAccount[];
+    return deserializedResult.map(t => {
+      let obj = {
+        Name: t.name,
+        Id: t.id,
+        Description: t.description
+      };
+      return obj;
+    })
   }
 
   async createServiceAccount(accountName: string, description: string = ""): Promise<ServiceAccount> {

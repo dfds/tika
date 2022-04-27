@@ -1,5 +1,7 @@
 export default class ServiceAccount {
-  Id: number;
-  Name: string;
-  Description: string; // Currently isn't parsed properly (whitespace and space in general gets trimemd away)
+  id: number;
+  name: string;
+  description: string; // Currently isn't parsed properly (whitespace and space in general gets trimemd away)
 }
+
+export type ListServiceAccounts = Array<ServiceAccount>;
