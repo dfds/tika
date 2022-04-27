@@ -22,14 +22,13 @@ RUN apk add --update \
     curl expect \
     && rm -rf /var/cache/apk/*
 
-# Install ccloud cli tool
-RUN curl -L https://s3-us-west-2.amazonaws.com/confluent.cloud/ccloud-cli/install.sh | sh -s -- -b /ccloud/bin
+# Install confluent cli tool
+RUN apk --no-cache add ca-certificates bash curl
 
-ENV TIKA_CCLOUD_BIN_PATH="/ccloud/bin/ccloud"
-ENV PATH "$PATH:/ccloud/bin"
+ENV CONFLUENT_CLI_VERSION="v2.12.0"
+RUN curl -sL --http1.1 https://cnfl.io/cli | sh -s -- -b /usr/local/bin $CONFLUENT_CLI_VERSION
 
-RUN ccloud version
-
+RUN confluent version
 
 # Copy app & supporting scripts
 COPY --from=Builder /app/dist/main.js /app/main.js
