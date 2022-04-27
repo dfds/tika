@@ -3,7 +3,7 @@ import * as readline from "readline";
 import { CcloudSessionExpiredException, CliException } from "./../model/error";
 
 export function executeCli(args: string[]): Promise<string[]> {
-  const cli = process.env.TIKA_CCLOUD_BIN_PATH ?? "ccloud";
+  const cli = process.env.TIKA_CCLOUD_BIN_PATH ?? "confluent";
 
   return new Promise((resolve, reject) => {
     const lines: Array<string> = [];
@@ -21,7 +21,7 @@ export function executeCli(args: string[]): Promise<string[]> {
         return resolve(lines);
       }
 
-      if (errLines.some((l: string): boolean => l.includes("You must log in to run that command."))) {
+      if (errLines.some((l: string): boolean => l.includes("You must be logged in to run this command"))) {
         return reject(new CcloudSessionExpiredException());
       }
 

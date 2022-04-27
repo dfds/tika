@@ -1,5 +1,5 @@
 #!/usr/bin/expect
-spawn ccloud login
+spawn confluent login
 
 expect "Email: "
 
