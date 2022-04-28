@@ -48,7 +48,7 @@ interface ServiceAccounts {
 
 interface ApiKeys {
     createApiKey(
-        serviceAccountId: number,
+        serviceAccountId: string,
         description: string
     ): Promise<ApiKeySet>;
 
