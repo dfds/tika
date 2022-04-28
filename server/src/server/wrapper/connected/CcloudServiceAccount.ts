@@ -2,7 +2,7 @@ import { parse, parseSideColumns } from "./../parser";
 import { executeCli } from "./executeCli";
 import { CliException, ServiceAccountAlreadyExistsException } from "./../model/error";
 import { Deserializer, ConcatOutput } from "../utils";
-import { ListServiceAccounts } from "../model/service-account";
+import { ListServiceAccounts, ListServiceAccount } from "../model/service-account";
 
 export class CcloudServiceAccount implements ServiceAccounts {
   ccloud: CCloudCliWrapper;
@@ -30,14 +30,14 @@ export class CcloudServiceAccount implements ServiceAccounts {
   async createServiceAccount(accountName: string, description: string = ""): Promise<ServiceAccount> {
     let cliResult;
     try {
-      cliResult = await executeCli(["service-account", "create", accountName, "--description", description]);
+      cliResult = await executeCli(["iam", "service-account", "create", accountName, "--description", description, "--output", "json"]);
     }
     catch (error) {
       if (error.name.valueOf() !== "CliException") {
         throw (error);
       }
 
-      if (error.consoleLines.some((l: string): boolean => l.includes("Service name is already in use"))) {
+      if (error.consoleLines.some((l: string): boolean => l.includes("is already in use"))) {
         let existingServicesAccounts = await this.getServiceAccounts();
 
         let existingServicesAccount = existingServicesAccounts.find(s => s.Name === accountName);
@@ -54,15 +54,23 @@ export class CcloudServiceAccount implements ServiceAccounts {
       throw (error);
     }
 
+    let combinedResult = ConcatOutput(cliResult);
+    let deserializedResult : ListServiceAccount;
+    try {
+        deserializedResult = Deserializer<ListServiceAccount>(combinedResult);
+    } catch (error) {
+        return error;
+    }
 
-
-    let result = parseSideColumns(cliResult);
-
-    return (result as any) as ServiceAccount;
+    return {
+      Name: deserializedResult.name,
+      Id: deserializedResult.id,
+      Description: deserializedResult.description
+    };
   }
 
   async deleteServiceAccount(accountId: number): Promise<boolean> {
-    await executeCli(["service-account", "delete", accountId.toString()]);
+    await executeCli(["iam", "service-account", "delete", accountId.toString()]);
     return true;
   }
 
