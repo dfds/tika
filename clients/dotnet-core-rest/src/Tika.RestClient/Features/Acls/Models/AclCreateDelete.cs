@@ -2,7 +2,7 @@ namespace Tika.RestClient.Features.Acls.Models
 {
     public class AclCreateDelete
     {
-        public long ServiceAccountId { get; set; }
+        public string ServiceAccountId { get; set; }
         public bool Allow { get; set; }
         public string Operation { get; set; }
         public string TopicPrefix { get; set; }
@@ -10,7 +10,7 @@ namespace Tika.RestClient.Features.Acls.Models
         
         public AclCreateDelete() {}
 
-        public AclCreateDelete(long serviceAccountId, bool allow, string operation, string topicPrefix = "", string consumerGroupPrefix = "")
+        public AclCreateDelete(string serviceAccountId, bool allow, string operation, string topicPrefix = "", string consumerGroupPrefix = "")
         {
             ServiceAccountId = serviceAccountId;
             Allow = allow;
