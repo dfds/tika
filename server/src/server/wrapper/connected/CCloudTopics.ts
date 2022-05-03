@@ -2,26 +2,47 @@ import { parse, parseTopicDescription } from "./../parser";
 import { executeCli } from "./executeCli";
 import { TopicAlreadyExistsException } from "../model/error";
 import { GetConfig } from "../../config";
+import { Deserializer, ConcatOutput } from "../utils";
+import { ListTopics, DescribeTopic } from "../model/topics";
+
 
 export class CcloudTopics implements Topics {
 
     async getTopics(): Promise<string[]> {
         let config = GetConfig();
 
-        let result = await executeCli(["kafka", "topic", "list", "--cluster", config.clusterId, "--environment", config.environmentId]);
-        result =
-            parse(result)
-                .filter(t => t.Name.startsWith("_confluent") === false)
-                .map(t => t.Name);
+        let result = await executeCli(["kafka", "topic", "list", "--cluster", config.clusterId, "--environment", config.environmentId, "--output", "json"]);
 
-        return result;
+        let combinedResult = ConcatOutput(result);
+        let deserializedResult : ListTopics;
+        try {
+            deserializedResult = Deserializer<ListTopics>(combinedResult);
+        } catch (error) {
+            return error;
+        }
+    
+        return deserializedResult
+            .filter(t => t.name.startsWith("_confluent") === false)
+            .map(t => t.name);
     }
 
     async describeTopic(name: string): Promise<Topic> {
         let config = GetConfig();
-        let consoleLines = await executeCli(["kafka", "topic", "describe", name, "--cluster", config.clusterId, "--environment", config.environmentId]);
+        let result = await executeCli(["kafka", "topic", "describe", name, "--cluster", config.clusterId, "--environment", config.environmentId, "--output", "json"]);
 
-        var topic = parseTopicDescription(consoleLines);
+        let combinedResult = ConcatOutput(result);
+        let deserializedResult : DescribeTopic;
+        try {
+            deserializedResult = Deserializer<DescribeTopic>(combinedResult);
+        } catch (error) {
+            return error;
+        }
+
+        let topic = {
+            Name: deserializedResult.topic_name,
+            PartitionCount: deserializedResult.config["num.partitions"], // might be an issue that partitionCount is present twice
+            Configurations: deserializedResult.config // might be an issue that partitionCount is present twice
+        };
 
         return topic;
     }

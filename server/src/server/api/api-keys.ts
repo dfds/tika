@@ -7,7 +7,7 @@ export class ApiKeysInterface {
 
             try {
                 let apiKey = await apiKeys.createApiKey(
-                    parseInt(req.body.serviceAccountId),
+                    req.body.serviceAccountId,
                     req.body.description
                 );
                 res.json(apiKey);

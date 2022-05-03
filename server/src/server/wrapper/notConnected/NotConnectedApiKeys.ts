@@ -15,7 +15,7 @@ export class NotConnectedApiKeys implements ApiKeys {
     constructor() {
         this.apiKeys = [];
     }
-    async createApiKey(serviceAccountId: number, description: string): Promise<ApiKeySet> {
+    async createApiKey(serviceAccountId: string, description: string): Promise<ApiKeySet> {
         let key = NotConnectedApiKeys.createRandomString(16, true);
 
         let apiKey: ApiKey = {
