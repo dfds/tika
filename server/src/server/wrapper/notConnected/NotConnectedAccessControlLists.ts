@@ -73,12 +73,16 @@ export class NotConnectedAccessControlLists implements AccessControlLists {
       a.Type === b.Type
   }
 
+  private isCluster(consumerGroupPrefix: string): boolean {
+    return consumerGroupPrefix === "CLUSTER"
+  }
+
   private createAccessControlListObject(serviceAccountId: number,
     allow: boolean,
     operation: string,
     topicPrefix: string,
     consumerGroupPrefix: string): AccessControlList {
-    let name = "";
+    let name = this.isCluster(consumerGroupPrefix) ? "kafka-cluster" : "";
     if (topicPrefix !== undefined) { name = topicPrefix; }
     else if (consumerGroupPrefix !== undefined) { name = consumerGroupPrefix }
     let accessControlList: AccessControlList = {
