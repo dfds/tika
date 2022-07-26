@@ -25,10 +25,9 @@ RUN apk add --update \
 # Install confluent cli tool
 RUN apk --no-cache add ca-certificates bash curl
 
-ENV CONFLUENT_CLI_VERSION="v2.12.0"
-RUN curl -sL --http1.1 https://cnfl.io/cli | sh -s -- -b /usr/local/bin $CONFLUENT_CLI_VERSION
+COPY ./confluent-bin /usr/local/bin/confluent
 
-RUN confluent version
+RUN chmod +x /usr/local/bin/confluent && confluent version
 
 # Copy app & supporting scripts
 COPY --from=Builder /app/dist/main.js /app/main.js
