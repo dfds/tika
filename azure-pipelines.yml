@@ -9,6 +9,12 @@ trigger:
 pool:
   vmImage: 'Ubuntu-20.04'
 
+variables:
+- group: 'AWS ECR-PUSH PROD'
+#- name: SAML2AWS_USERNAME // Set in ADO
+#- name: SAML2AWS_PASSWORD // Set in ADO as a secret
+#- name: SAML2AWS_ROLE // Set in ADO
+
 steps:
   - task: InstallSSHKey@0
     inputs:
@@ -16,19 +22,45 @@ steps:
       sshPublicKey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDCSRatCN0LXkS1sWlzphG6FhtZIwvIlx4w4s6U+Z3TZCSnFCDN0tpD20WQ4qkRT8Q/9FvIyXzn6EQihN+hNtDUdnKecEYADCNuo2r2EzZUjYc4nYOQMUcaSCilu4oWiicR+GuEdUTxzWLqW7K6vRcwUKFsq4zpwva/Gr7SZHzT4IichI25UIOTtmWsnQvfPCSGTtwFocmB06WYNgCBsQxB3Y0RF2Q6BzGiKblOwnLhrp8gEJBm9wLdQiYGcumQPuG5ZxtT/d2EfBuj1+cGQmmhb/QVDY1xi5H7hC83IKGFytZDVGibwcQQUIV2proALE3S/DNSEQoi+cRjmvQkNkVv jandr@DKCPH-LR90PUUNN
       sshKeySecureFile: tika_rsa
 
-  - task: DownloadSecureFile@1
-    displayName: 'Download ccloud config'
-    inputs:
-      secureFile: '852b1ca1-ce50-4845-897f-b9f9c1738b1f'
-
   - bash: |
       set -eu -o pipefail
 
       sudo pip3 install setuptools
       sudo pip3 install awscli
-      export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
 
-      cp ${DOWNLOADSECUREFILE_SECUREFILEPATH} ./ccloud-config
+      # Install saml2aws
+      VERSION=2.36.0
+      DOWNLOAD_URL=https://github.com/Versent/saml2aws/releases/download/v${VERSION}/saml2aws_${VERSION}_linux_amd64.tar.gz
+      LOCAL_FILE=./saml2aws.tar.gz
+      curl -Lo $LOCAL_FILE $DOWNLOAD_URL
+      tar xvzf $LOCAL_FILE
+      rm $LOCAL_FILE
+      sudo mv saml2aws /usr/local/bin
+
+      # Configure saml2aws
+      saml2aws configure --url=https://adfs.dfds.com/adfs/ls/IdpInitiatedSignOn.aspx --idp-provider=ADFS --mfa=Auto --session-duration=28800 --skip-prompt
+      saml2aws login --disable-keychain --url=https://adfs.dfds.com/adfs/ls/IdpInitiatedSignOn.aspx --idp-provider=ADFS --mfa=Auto --skip-prompt --force
+
+      export AWS_DEFAULT_REGION=$(AWS_DEFAULT_REGION)
+
       cd server
+
+      # Use credentials for S3 bucket
+      eval $(saml2aws script --url=https://adfs.dfds.com/adfs/ls/IdpInitiatedSignOn.aspx --idp-provider=ADFS --mfa=Auto)
+      aws sts get-caller-identity
+      make prereqs
+
+      # Use credentials for ECR push
+      export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+      export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+      unset AWS_SESSION_TOKEN
+      unset AWS_SECURITY_TOKEN
+      unset AWS_CREDENTIAL_EXPIRATION
+
+      aws sts get-caller-identity
       make release BUILD_NUMBER=$(Build.BuildId)
     displayName: 'Build a deployment artifact'
+    env:
+      SAML2AWS_PASSWORD: $(SAML2AWS_PASSWORD)
+      SAML2AWS_USERNAME: $(SAML2AWS_USERNAME)
+      SAML2AWS_ROLE: $(SAML2AWS_ROLE)
