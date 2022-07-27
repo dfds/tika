@@ -25,7 +25,11 @@ export function executeCli(args: string[]): Promise<string[]> {
         return reject(new CcloudSessionExpiredException());
       }
 
-      reject(new CliException(exitCode, errLines));
+      let combinedLines : any = [];
+      combinedLines = combinedLines.concat(lines);
+      combinedLines = combinedLines.concat(errLines);
+
+      reject(new CliException(exitCode, combinedLines));
     });
   });
 }

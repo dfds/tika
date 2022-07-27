@@ -37,7 +37,9 @@ export class CcloudServiceAccount implements ServiceAccounts {
         throw (error);
       }
 
-      if (error.consoleLines.some((l: string): boolean => l.includes("is already in use"))) {
+      // "Error: service name "NAME-HERE" is already in use" is usually returned if the service account exists
+      // "Error: Service Account Not Found: 404 Not Found" can also be returned if the service account exists.. for some reason. Confluent is looking into why but are currently unable to reproduce in a different environment.
+      if (error.consoleLines.some((l: string): boolean => l.includes("is already in use")) || error.consoleLines.some((l: string): boolean => l.includes("404 Not Found"))) {
         let existingServicesAccounts = await this.getServiceAccounts();
 
         let existingServicesAccount = existingServicesAccounts.find(s => s.Name === accountName);
