@@ -1,8 +1,8 @@
 IMAGE_NAME = "ded/tika"
 BUILD_NUMBER = "N/A"
-CONFLUENT_CLI_VERSION = "v2.12.0"
-CONFLUENT_CLI_ARCH = "amd64"
-CONFLUENT_CLI_OS = "alpine"
+CONFLUENT_CLI_VERSION = v2.12.0
+CONFLUENT_CLI_ARCH = amd64
+CONFLUENT_CLI_OS = linux
 
 build:
 	docker build -t $(IMAGE_NAME) .
@@ -17,4 +17,4 @@ prereqs: get-confluent-cli
 
 # Requires you to authenticate before you can access the specified Bucket. Had to store the binaries separately since Confluent doesn't do this versioning thingy. 
 get-confluent-cli: 
-	aws s3 cp s3://confluent-cli-bins-9gfayuge7p/confluent-${CONFLUENT_CLI_VERSION}-${CONFLUENT_CLI_OS}-${CONFLUENT_CLI_ARCH} confluent-bin
+	aws s3 cp s3://confluent-cli-bins-9gfayugc7p/confluent-${CONFLUENT_CLI_VERSION}-${CONFLUENT_CLI_OS}-${CONFLUENT_CLI_ARCH} confluent-bin
