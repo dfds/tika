@@ -11,9 +11,8 @@ pool:
 
 variables:
 - group: 'AWS ECR-PUSH PROD'
-#- name: SAML2AWS_USERNAME // Set in ADO
-#- name: SAML2AWS_PASSWORD // Set in ADO as a secret
-#- name: SAML2AWS_ROLE // Set in ADO
+#- name: DEPLOY_AWS_ACCESS_KEY_ID // Set in ADO
+#- name: DEPLOY_AWS_SECRET_ACCESS_KEY // Set in ADO as a secret
 
 steps:
   - task: InstallSSHKey@0
@@ -28,39 +27,26 @@ steps:
       sudo pip3 install setuptools
       sudo pip3 install awscli
 
-      # Install saml2aws
-      VERSION=2.36.0
-      DOWNLOAD_URL=https://github.com/Versent/saml2aws/releases/download/v${VERSION}/saml2aws_${VERSION}_linux_amd64.tar.gz
-      LOCAL_FILE=./saml2aws.tar.gz
-      curl -Lo $LOCAL_FILE $DOWNLOAD_URL
-      tar xvzf $LOCAL_FILE
-      rm $LOCAL_FILE
-      sudo mv saml2aws /usr/local/bin
-
-      # Configure saml2aws
-      saml2aws configure --url=https://adfs.dfds.com/adfs/ls/IdpInitiatedSignOn.aspx --idp-provider=ADFS --mfa=Auto --session-duration=28800 --skip-prompt
-      saml2aws login --disable-keychain --url=https://adfs.dfds.com/adfs/ls/IdpInitiatedSignOn.aspx --idp-provider=ADFS --mfa=Auto --skip-prompt --force
-
+      # Configure AWS Creds
+      export AWS_ACCESS_KEY_ID=$(DEPLOY_AWS_ACCESS_KEY_ID)
+      export AWS_SECRET_ACCESS_KEY=$(DEPLOY_AWS_SECRET_ACCESS_KEY)
       export AWS_DEFAULT_REGION=$(AWS_DEFAULT_REGION)
 
       cd server
 
       # Use credentials for S3 bucket
-      eval $(saml2aws script --url=https://adfs.dfds.com/adfs/ls/IdpInitiatedSignOn.aspx --idp-provider=ADFS --mfa=Auto)
       aws sts get-caller-identity
       make prereqs
 
       # Use credentials for ECR push
+      unset AWS_ACCESS_KEY_ID
+      unset AWS_SECRET_ACCESS_KEY
       export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
       export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-      unset AWS_SESSION_TOKEN
-      unset AWS_SECURITY_TOKEN
-      unset AWS_CREDENTIAL_EXPIRATION
 
       aws sts get-caller-identity
       make release BUILD_NUMBER=$(Build.BuildId)
     displayName: 'Build a deployment artifact'
     env:
-      SAML2AWS_PASSWORD: $(SAML2AWS_PASSWORD)
-      SAML2AWS_USERNAME: $(SAML2AWS_USERNAME)
-      SAML2AWS_ROLE: $(SAML2AWS_ROLE)
+      DEPLOY_AWS_ACCESS_KEY_ID: $(DEPLOY_AWS_ACCESS_KEY_ID)
+      DEPLOY_AWS_SECRET_ACCESS_KEY: $(DEPLOY_AWS_SECRET_ACCESS_KEY)
