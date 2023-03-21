@@ -1,11 +1,11 @@
 # https://github.com/nodejs/docker-node/blob/6bc7fe5d018f2235cdcd2f7681990cee9d096497/13/alpine3.11/Dockerfile
 ## Node js app builder ##
-FROM node:13.10.1-alpine3.11 AS Builder
+FROM node:14-alpine AS Builder
 
 WORKDIR /app
 
 COPY package.json .
-RUN npm install 
+RUN npm install
 
 COPY webpack.config.js .
 COPY tsconfig.json .
@@ -15,7 +15,7 @@ RUN npm run build
 
 
 ## Node js app runner ##
-FROM node:13.10.1-alpine3.11 As Runner 
+FROM node:14-alpine As Runner
 
 # Install curl & expect
 RUN apk add --update \
